@@ -1,0 +1,71 @@
+import fitz  # PyMuPDF
+import re
+
+def parse_resume(file_path):
+    doc = fitz.open(file_path)
+    text = ""
+    for page in doc:
+        text += page.get_text()
+
+    lines = text.splitlines()
+    parsed_data = {
+        "name": extract_name(lines),
+        "job_title": extract_job_title(text),
+        "education": extract_education(text),
+        "skills": extract_skills(text),
+        "certifications": extract_certifications(text),
+        "experience": extract_experience(text),
+        "summary": extract_summary(text)
+    }
+
+    return parsed_data
+
+def extract_name(lines):
+    for line in lines:
+        line = line.strip()
+        if line and not any(title in line for title in ["Data Scientist", "Engineer", "Manager", "Developer"]):
+            return line
+    return "N/A"
+
+lines = text.splitlines()
+parsed_data = {
+    "name": extract_name(lines),
+    ...
+}
+
+def extract_job_title(text):
+    titles = ["Data Scientist", "Software Engineer", "Project Manager", "Business Analyst"]
+    for title in titles:
+        if title in text:
+            return title
+    return "N/A"
+
+def extract_education(text):
+    match = re.search(r"(Bachelor.*?|B\.Tech.*?|Master.*?|M\.Sc.*?)", text)
+    return match.group(1).strip() if match else "N/A"
+
+def extract_skills(text):
+    keywords = ["Python", "SQL", "Excel", "Tableau", "Power BI", "Communication", "Java"]
+    return list(set(re.findall(r"\b(" + "|".join(keywords) + r")\b", text, re.IGNORECASE)))
+
+def extract_certifications(text):
+    matches = re.findall(r'Certified by .*? on "(.*?)"', text)
+    return matches if matches else []
+
+def extract_experience(text):
+    match = re.search(r"(TECHNICAL EXPERIENCE|ACADEMIC PROJECTS)(.*?)(?=\n[A-Z])", text, re.DOTALL)
+    return match.group(2).strip() if match else "N/A"
+
+def extract_summary(text):
+    match = re.search(r"(Objective|Summary)\s*[:\-]?\s*(.+?)(?=\n[A-Z])", text, re.DOTALL)
+    if match:
+        return match.group(2).strip()
+
+    # Fallback: first long paragraph
+    paragraphs = text.split("\n\n")
+    for para in paragraphs:
+        if len(para.split()) > 20:
+            return para.strip()
+    return "N/A"
+
+print(" Raw Resume Text Preview:\n", text[:1000])
